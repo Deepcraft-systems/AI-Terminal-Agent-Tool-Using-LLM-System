@@ -55,9 +55,8 @@ def main():
     print("Logs from your program will appear here!", file=sys.stderr)
 
     # TODO: Uncomment the following line to pass the first stage
-    print(chat.choices[0].message.content)
 
-    if chat.choices[0].message.tool_calls or len(chat.choices[0].message.tool_calls) > 0:
+    if chat.choices[0].message.tool_calls and len(chat.choices[0].message.tool_calls) > 0:
         tool_call = chat.choices[0].message.tool_calls[0]
         function_name = tool_call.function.name
         arguments = tool_call.function.arguments
@@ -65,9 +64,11 @@ def main():
         formatted_args = re.sub(r"[\\{}]", '', arguments)
         formatted_args = formatted_args.split(":")
 
-        file = open(formatted_args[1].strip('" '), "r")
+        file = open(formatted_args[1].strip().strip("'"), "r")
         content = file.read()
         print(content)
-    
+    else:
+        print(chat.choices[0].message.content)
+
 if __name__ == "__main__":
     main()
