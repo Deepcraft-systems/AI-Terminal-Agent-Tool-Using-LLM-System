@@ -1,8 +1,12 @@
 import argparse
 import os
 import sys
+import re
 
 from openai import OpenAI
+
+OPENROUTER_API_KEY = "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"
+os.environ.__setitem__("OPENROUTER_API_KEY", OPENROUTER_API_KEY)
 
 API_KEY = os.getenv("OPENROUTER_API_KEY")
 BASE_URL = os.getenv("OPENROUTER_BASE_URL", default="https://openrouter.ai/api/v1")
@@ -44,6 +48,8 @@ def main():
 
     if not chat.choices or len(chat.choices) == 0:
         raise RuntimeError("no choices in response")
+    
+    
 
     # You can use print statements as follows for debugging, they'll be visible when running tests.
     print("Logs from your program will appear here!", file=sys.stderr)
@@ -51,6 +57,16 @@ def main():
     # TODO: Uncomment the following line to pass the first stage
     print(chat.choices[0].message.content)
 
+    if chat.choices[0].message.tool_calls or len(chat.choices[0].message.tool_calls) > 0:
+        tool_call = chat.choices[0].message.tool_calls[0]
+        function_name = tool_call.function.name
+        arguments = tool_call.tool_call.function.arguments
 
+        formatted_args = re.sub(r"\\", '', arguments)
+
+        file = open(formatted_args.file_path, "r")
+        content = file.read()
+        print(content)
+    
 if __name__ == "__main__":
     main()
