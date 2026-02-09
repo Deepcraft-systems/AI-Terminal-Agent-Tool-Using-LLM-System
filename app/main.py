@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 import re
+import json
 
 from openai import OpenAI
 
@@ -61,12 +62,12 @@ def main():
         function_name = tool_call.function.name
         arguments = tool_call.function.arguments
 
-        formatted_args = re.sub(r"[\\{}]", '', arguments)
-        formatted_args = formatted_args.split(":")
+        parsed_args = json.loads(arguments)
+        file_path = parsed_args["file_path"]
 
-        file = open(formatted_args[1].strip().strip("'"), "r")
-        content = file.read()
-        print(content)
+        with open(file_path, "r") as file:
+            content = file.read()
+            print(content)
     else:
         print(chat.choices[0].message.content)
 
