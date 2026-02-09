@@ -63,6 +63,7 @@ def main():
         arguments = tool_call.function.arguments
 
         formatted_args = re.sub(r"[\\{}]", '', arguments)
+        formatted_args = formatted_args.split(":")
 
         file = open(formatted_args[1].strip('" '), "r")
         content = file.read()
