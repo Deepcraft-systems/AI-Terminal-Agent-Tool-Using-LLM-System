@@ -60,11 +60,11 @@ def main():
     if chat.choices[0].message.tool_calls or len(chat.choices[0].message.tool_calls) > 0:
         tool_call = chat.choices[0].message.tool_calls[0]
         function_name = tool_call.function.name
-        arguments = tool_call.tool_call.function.arguments
+        arguments = tool_call.function.arguments
 
-        formatted_args = re.sub(r"\\", '', arguments)
+        formatted_args = re.sub(r"[\\{}]", '', arguments)
 
-        file = open(formatted_args.file_path, "r")
+        file = open(formatted_args[1].strip('" '), "r")
         content = file.read()
         print(content)
     
