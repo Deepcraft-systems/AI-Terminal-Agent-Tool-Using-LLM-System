@@ -24,7 +24,6 @@ def main():
 
     client = OpenAI(api_key=API_KEY, base_url=BASE_URL)
     msgs = [{"role": "user", "content": args.p}]
-    tool_calls = []
 
     while True:
         chat = client.chat.completions.create(
@@ -59,28 +58,34 @@ def main():
 
         # TODO: Uncomment the following line to pass the first stage
 
+        msgs.append({
+            "role": "assistant",
+            "content": chat.choices[0].message.content,
+            "tool_calls": chat.choices[0].message.tool_calls,
+        })
+
         if chat.choices[0].message.tool_calls and len(chat.choices[0].message.tool_calls) > 0:
-            tool_call = chat.choices[0].message.tool_calls[0]
-            function_name = tool_call.function.name
-            arguments = tool_call.function.arguments
+            for tool_call in chat.choices[0].message.tool_calls:
+                function_name = tool_call.function.name
+                arguments = tool_call.function.arguments
 
-            parsed_args = json.loads(arguments)
-            file_path = parsed_args["file_path"]
+                parsed_args = json.loads(arguments)
+                file_path = parsed_args["file_path"]
 
-            with open(file_path, "r") as file:
-                content = file.read()
-                print(content)
-                tool_calls.append({
-                    "role": "tool",
-                    "tool_call_id": tool_call.id,
-                    "content": content
-                })
+                with open(file_path, "r") as file:
+                    content = file.read()
+                    print(content)
+                    msgs.append({
+                        "role": "tool",
+                        "tool_call_id": tool_call.id,
+                        "content": content
+                    })
 
         else:
             print(chat.choices[0].message.content)
             msgs.append({
                 "role": "assistant",
-                "content": chat.choices[0].message.content
+                "content": chat.choices[0].message.content,
             })
             break
 
