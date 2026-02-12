@@ -10,7 +10,8 @@ OPENROUTER_API_KEY = "sk-or-v1-0f87c44b31094a3144a49ec70019e30d7eb50f240a36e5fe2
 os.environ.__setitem__("OPENROUTER_API_KEY", OPENROUTER_API_KEY)
 
 API_KEY = os.getenv("OPENROUTER_API_KEY")
-BASE_URL = os.getenv("OPENROUTER_BASE_URL", default="https://openrouter.ai/api/v1")
+BASE_URL = os.getenv("OPENROUTER_BASE_URL",
+                     default="https://openrouter.ai/api/v1")
 
 
 def main():
@@ -22,54 +23,67 @@ def main():
         raise RuntimeError("OPENROUTER_API_KEY is not set")
 
     client = OpenAI(api_key=API_KEY, base_url=BASE_URL)
+    msgs = [{"role": "user", "content": args.p}]
+    tool_calls = []
 
-    chat = client.chat.completions.create(
-        model="anthropic/claude-haiku-4.5",
-        messages=[{"role": "user", "content": args.p}],
-        tools = [
-            {
-                "type": "function",
-                "function": {
-                    "name": "Read",
-                    "description": "Read and return the contents of a file",
-                    "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "file_path": {
-                        "type": "string",
-                        "description": "The path to the file to read"
+    while True:
+        chat = client.chat.completions.create(
+            model="anthropic/claude-haiku-4.5",
+            messages=msgs,
+            tools=[
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "Read",
+                        "description": "Read and return the contents of a file",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "file_path": {
+                                    "type": "string",
+                                    "description": "The path to the file to read"
+                                }
+                            },
+                            "required": ["file_path"]
                         }
-                    },
-                    "required": ["file_path"]
                     }
                 }
-            }
-        ]
-    )
+            ]
+        )
 
-    if not chat.choices or len(chat.choices) == 0:
-        raise RuntimeError("no choices in response")
-    
-    
+        if not chat.choices or len(chat.choices) == 0:
+            raise RuntimeError("no choices in response")
 
-    # You can use print statements as follows for debugging, they'll be visible when running tests.
-    print("Logs from your program will appear here!", file=sys.stderr)
+        # You can use print statements as follows for debugging, they'll be visible when running tests.
+        print("Logs from your program will appear here!", file=sys.stderr)
 
-    # TODO: Uncomment the following line to pass the first stage
+        # TODO: Uncomment the following line to pass the first stage
 
-    if chat.choices[0].message.tool_calls and len(chat.choices[0].message.tool_calls) > 0:
-        tool_call = chat.choices[0].message.tool_calls[0]
-        function_name = tool_call.function.name
-        arguments = tool_call.function.arguments
+        if chat.choices[0].message.tool_calls and len(chat.choices[0].message.tool_calls) > 0:
+            tool_call = chat.choices[0].message.tool_calls[0]
+            function_name = tool_call.function.name
+            arguments = tool_call.function.arguments
 
-        parsed_args = json.loads(arguments)
-        file_path = parsed_args["file_path"]
+            parsed_args = json.loads(arguments)
+            file_path = parsed_args["file_path"]
 
-        with open(file_path, "r") as file:
-            content = file.read()
-            print(content)
-    else:
-        print(chat.choices[0].message.content)
+            with open(file_path, "r") as file:
+                content = file.read()
+                print(content)
+                tool_calls.append({
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "content": content
+                })
+
+        else:
+            print(chat.choices[0].message.content)
+            msgs.append({
+                "role": "assistant",
+                "content": chat.choices[0].message.content
+            })
+            break
+
 
 if __name__ == "__main__":
     main()
