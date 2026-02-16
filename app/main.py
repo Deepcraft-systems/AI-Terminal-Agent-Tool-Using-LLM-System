@@ -3,6 +3,7 @@ import os
 import sys
 import re
 import json
+import subprocess
 
 from openai import OpenAI
 
@@ -67,6 +68,23 @@ def main():
                             }
                         }
                     }
+                },
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "Bash",
+                        "description": "Execute a shell command",
+                        "parameters": {
+                            "type": "object",
+                            "required": ["command"],
+                            "properties": {
+                                "command": {
+                                    "type": "string",
+                                    "description": "The command to execute"
+                                }
+                            }
+                        }
+                    }
                 }
             ]
         )
@@ -111,6 +129,23 @@ def main():
                             "tool_call_id": tool_call.id,
                             "content": content
                         })
+
+                elif function_name == "Bash":
+                    command = parsed_args["command"]
+
+                    result = subprocess.run(
+                        [command], capture_output=True, text=True)
+
+                    if result.returncode == 0:
+                        output = result.stdout
+                    else:
+                        output = result.stderr
+
+                    msgs.append({
+                        "role": "tool",
+                        "tool_call_id": tool_call.id,
+                        "content": output
+                    })
 
         else:
             print(chat.choices[0].message.content)
