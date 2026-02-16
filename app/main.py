@@ -108,9 +108,9 @@ def main():
                 arguments = tool_call.function.arguments
 
                 parsed_args = json.loads(arguments)
-                file_path = parsed_args["file_path"]
 
                 if function_name == "Write":
+                    file_path = parsed_args["file_path"]
                     content = parsed_args["content"]
                     with open(file_path, "a") as file:
                         file.write(content)
@@ -121,6 +121,7 @@ def main():
                         })
 
                 elif function_name == "Read":
+                    file_path = parsed_args["file_path"]
                     with open(file_path, "r") as file:
                         content = file.read()
                         msgs.append({
