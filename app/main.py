@@ -46,6 +46,27 @@ def main():
                             "required": ["file_path"]
                         }
                     }
+                },
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "Write",
+                        "description": "Write content to a file",
+                        "parameters": {
+                            "type": "object",
+                            "required": ["file_path", "content"],
+                            "properties": {
+                                "file_path": {
+                                    "type": "string",
+                                    "description": "The path of the file to write to"
+                                },
+                                "content": {
+                                    "type": "string",
+                                    "description": "The content to write to the file"
+                                }
+                            }
+                        }
+                    }
                 }
             ]
         )
@@ -72,13 +93,24 @@ def main():
                 parsed_args = json.loads(arguments)
                 file_path = parsed_args["file_path"]
 
-                with open(file_path, "r") as file:
-                    content = file.read()
-                    msgs.append({
-                        "role": "tool",
-                        "tool_call_id": tool_call.id,
-                        "content": content
-                    })
+                if function_name == "Write":
+                    content = parsed_args["content"]
+                    with open(file_path, "a") as file:
+                        file.write(content)
+                        msgs.append({
+                            "role": "tool",
+                            "tool_call_id": tool_call.id,
+                            "content": content
+                        })
+
+                elif function_name == "Read":
+                    with open(file_path, "r") as file:
+                        content = file.read()
+                        msgs.append({
+                            "role": "tool",
+                            "tool_call_id": tool_call.id,
+                            "content": content
+                        })
 
         else:
             print(chat.choices[0].message.content)
