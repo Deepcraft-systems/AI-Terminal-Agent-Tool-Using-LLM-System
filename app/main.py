@@ -1,7 +1,6 @@
 import argparse
 import os
 import sys
-import re
 import json
 import subprocess
 
@@ -134,7 +133,7 @@ def main():
                     command = parsed_args["command"]
 
                     result = subprocess.run(
-                        [command], capture_output=True, text=True)
+                        command, capture_output=True, shell=True, text=True, cwd='.')
 
                     if result.returncode == 0:
                         output = result.stdout
