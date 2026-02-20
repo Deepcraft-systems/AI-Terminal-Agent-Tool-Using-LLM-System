@@ -6,9 +6,6 @@ import subprocess
 
 from openai import OpenAI
 
-OPENROUTER_API_KEY = "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"
-os.environ.__setitem__("OPENROUTER_API_KEY", OPENROUTER_API_KEY)
-
 API_KEY = os.getenv("OPENROUTER_API_KEY")
 BASE_URL = os.getenv("OPENROUTER_BASE_URL",
                      default="https://openrouter.ai/api/v1")
